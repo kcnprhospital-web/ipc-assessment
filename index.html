@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D1B2A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>IPC Assessment — KCPH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Noto+Sans+Khmer:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0D1B2A;
+  --surface: #162032;
+  --surface2: #1E2E42;
+  --border: #2A3F58;
+  --accent: #00C9A7;
+  --accent2: #00A3CC;
+  --danger: #FF4757;
+  --warning: #FFA502;
+  --success: #2ED573;
+  --text: #E8F0FE;
+  --text2: #8FA8C8;
+  --text3: #5A7FA0;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans Khmer', 'Hanuman', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  backdrop-filter: blur(10px);
+}
+.topbar-logo {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.topbar-title { flex: 1; min-width: 0; }
+.topbar-title h1 { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar-title p { font-size: 11px; color: var(--text2); }
+.btn-back {
+  background: none; border: none; color: var(--accent); font-size: 22px;
+  cursor: pointer; padding: 4px; display: none; flex-shrink: 0;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: calc(100vh - 65px); }
+.screen.active { display: block; }
+
+/* ── HOME SCREEN ── */
+.home-hero {
+  background: linear-gradient(160deg, #0D2137 0%, #0D1B2A 100%);
+  padding: 24px 16px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.home-hero .badge {
+  display: inline-block; background: rgba(0,201,167,0.15); color: var(--accent);
+  border: 1px solid rgba(0,201,167,0.3); border-radius: 20px;
+  padding: 4px 12px; font-size: 11px; margin-bottom: 12px;
+}
+.home-hero h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.home-hero p { font-size: 12px; color: var(--text2); }
+
+.section-label {
+  padding: 16px 16px 8px;
+  font-size: 11px; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+
+.info-form { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-group label { font-size: 12px; color: var(--text2); font-weight: 600; }
+.field-group input, .field-group select {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  padding: 10px 12px; font-size: 14px; width: 100%;
+  font-family: inherit; outline: none; transition: border 0.2s;
+}
+.field-group input:focus, .field-group select:focus { border-color: var(--accent); }
+.field-group select option { background: var(--surface2); }
+
+.dept-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; padding: 0 16px 16px;
+}
+.dept-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 12px;
+  cursor: pointer; transition: all 0.2s; text-align: center;
+  position: relative; overflow: hidden;
+}
+.dept-card:active { transform: scale(0.97); }
+.dept-card.selected {
+  border-color: var(--accent);
+  background: rgba(0,201,167,0.1);
+}
+.dept-card .check {
+  position: absolute; top: 8px; right: 8px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); color: #000;
+  display: none; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+}
+.dept-card.selected .check { display: flex; }
+.dept-icon { font-size: 22px; margin-bottom: 6px; }
+.dept-name { font-size: 11px; color: var(--text); line-height: 1.3; font-weight: 600; }
+
+.btn-primary {
+  display: block; width: calc(100% - 32px); margin: 0 16px 24px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000; font-weight: 700; font-size: 15px;
+  border: none; border-radius: var(--radius); padding: 14px;
+  cursor: pointer; font-family: inherit; transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(0,201,167,0.3);
+}
+.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── ASSESSMENT SCREEN ── */
+.assessment-header {
+  background: var(--surface);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 65px; z-index: 90;
+}
+.assessment-dept { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.progress-bar-wrap { background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-bar { background: linear-gradient(90deg, var(--accent), var(--accent2)); height: 100%; border-radius: 4px; transition: width 0.3s; }
+.progress-text { font-size: 11px; color: var(--text2); margin-top: 4px; display: flex; justify-content: space-between; }
+
+.domain-block { margin-bottom: 4px; }
+.domain-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+.domain-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.domain-info { flex: 1; }
+.domain-name { font-size: 13px; font-weight: 700; }
+.domain-score { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.domain-chevron { font-size: 14px; color: var(--text3); transition: transform 0.25s; }
+.domain-block.open .domain-chevron { transform: rotate(180deg); }
+
+.domain-items { display: none; }
+.domain-block.open .domain-items { display: block; }
+
+.criterion-row {
+  padding: 12px 16px; border-bottom: 1px solid rgba(42,63,88,0.5);
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--bg);
+}
+.criterion-text { flex: 1; font-size: 13px; line-height: 1.5; padding-top: 2px; }
+.score-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.score-btn {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2); color: var(--text2);
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-family: inherit;
+}
+.score-btn:active { transform: scale(0.92); }
+.score-btn.s2.active { background: var(--success); border-color: var(--success); color: #000; }
+.score-btn.s1.active { background: var(--warning); border-color: var(--warning); color: #000; }
+.score-btn.s0.active { background: var(--danger); border-color: var(--danger); color: #fff; }
+.score-btn.sna.active { background: var(--text3); border-color: var(--text3); color: #fff; }
+
+/* ── SUMMARY SCREEN ── */
+.summary-hero {
+  padding: 20px 16px;
+  text-align: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.summary-score-ring {
+  width: 120px; height: 120px; margin: 0 auto 12px;
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.summary-score-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+.score-number { font-size: 32px; font-weight: 700; color: var(--text); }
+.score-pct { font-size: 13px; color: var(--text2); }
+.summary-rating {
+  display: inline-block; border-radius: 20px; padding: 6px 18px;
+  font-size: 13px; font-weight: 700; margin-bottom: 8px;
+}
+.rating-good { background: rgba(46,213,115,0.15); color: var(--success); border: 1px solid rgba(46,213,115,0.3); }
+.rating-warn { background: rgba(255,165,2,0.15); color: var(--warning); border: 1px solid rgba(255,165,2,0.3); }
+.rating-crit { background: rgba(255,71,87,0.15); color: var(--danger); border: 1px solid rgba(255,71,87,0.3); }
+.summary-meta { font-size: 12px; color: var(--text2); }
+
+.domain-summary-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.domain-summary-item {
+  background: var(--surface2); border-radius: var(--radius-sm);
+  padding: 10px 12px; border: 1px solid var(--border);
+}
+.domain-summary-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.domain-summary-icon { font-size: 16px; }
+.domain-summary-name { flex: 1; font-size: 13px; font-weight: 600; }
+.domain-summary-pct { font-size: 13px; font-weight: 700; }
+.mini-bar { background: var(--border); border-radius: 3px; height: 4px; overflow: hidden; }
+.mini-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+.action-btns { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.btn-secondary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-weight: 600; font-size: 14px;
+  border-radius: var(--radius); padding: 13px;
+  cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.btn-secondary:active { background: var(--border); transform: scale(0.98); }
+.btn-sheets { border-color: rgba(0,201,167,0.4); color: var(--accent); }
+.btn-pdf { border-color: rgba(0,163,204,0.4); color: var(--accent2); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 10px 20px; border-radius: 30px;
+  font-size: 13px; font-weight: 600; z-index: 999;
+  transition: transform 0.3s ease; white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--success); color: var(--success); }
+.toast.error { border-color: var(--danger); color: var(--danger); }
+
+/* ── MODAL (Google Sheets URL) ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 200; display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  width: 100%; max-width: 480px; padding: 20px 20px 40px;
+  border: 1px solid var(--border);
+}
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.modal-desc { font-size: 12px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+.modal-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); padding: 10px 12px;
+  font-size: 13px; font-family: inherit; outline: none; margin-bottom: 12px;
+}
+.modal-input:focus { border-color: var(--accent); }
+.modal-row { display: flex; gap: 10px; }
+.btn-ghost {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); font-size: 14px; font-weight: 600; font-family: inherit;
+  border-radius: var(--radius-sm); padding: 12px; cursor: pointer;
+}
+
+/* Scrollable content below sticky bar */
+.assessment-content { padding-bottom: 100px; }
+
+.floating-done {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000; font-weight: 700; font-size: 15px;
+  border: none; border-radius: 30px; padding: 13px 40px;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 24px rgba(0,201,167,0.4);
+  z-index: 80;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <button class="btn-back" id="btnBack" onclick="goBack()">←</button>
+  <div class="topbar-logo">🛡</div>
+  <div class="topbar-title">
+    <h1 id="topTitle">ការវាយតម្លៃ IPC — KCPH</h1>
+    <p id="topSub">មន្ទីរពេទ្យខេត្តកំពង់ឆ្នាំង</p>
+  </div>
+</div>
+
+<!-- ══════════════ HOME SCREEN ══════════════ -->
+<div class="screen active" id="screenHome">
+  <div class="home-hero">
+    <div class="badge">National IPC Guidelines 2024</div>
+    <h2>វាយតម្លៃ IPC</h2>
+    <p>ជ្រើសរើសផ្នែក ហើយចាប់ផ្តើមការប្រឡង</p>
+  </div>
+
+  <div class="section-label">ព័ត៌មានការវាយតម្លៃ</div>
+  <div class="info-form">
+    <div class="field-group">
+      <label>ឈ្មោះអ្នកវាយតម្លៃ</label>
+      <input type="text" id="assessorName" placeholder="បញ្ចូលឈ្មោះ..." />
+    </div>
+    <div class="field-group">
+      <label>កាលបរិច្ឆេទ</label>
+      <input type="date" id="assessDate" />
+    </div>
+    <div class="field-group">
+      <label>ប្រភេទការត្រួតពិនិត្យ</label>
+      <select id="assessType">
+        <option value="ត្រួតពិនិត្យប្រចាំ">ត្រួតពិនិត្យប្រចាំ</option>
+        <option value="ត្រួតពិនិត្យតាមដាន">ត្រួតពិនិត្យតាមដាន</option>
+        <option value="ត្រួតពិនិត្យភ្លាមៗ">ត្រួតពិនិត្យភ្លាមៗ</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section-label">ជ្រើស​ ផ្នែក</div>
+  <div class="dept-grid" id="deptGrid"></div>
+
+  <button class="btn-primary" id="btnStart" onclick="startAssessment()" disabled>
+    ចាប់ផ្តើមវាយតម្លៃ →
+  </button>
+</div>
+
+<!-- ══════════════ ASSESSMENT SCREEN ══════════════ -->
+<div class="screen" id="screenAssess">
+  <div class="assessment-header">
+    <div class="assessment-dept" id="assessDeptLabel"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="progress-text">
+      <span id="progressAnswered">0 ចម្លើយ</span>
+      <span id="progressTotal">0 សំណួរ</span>
+    </div>
+  </div>
+  <div class="assessment-content" id="assessmentContent"></div>
+  <button class="floating-done" onclick="finishAssessment()">✔ បញ្ចប់ →</button>
+</div>
+
+<!-- ══════════════ SUMMARY SCREEN ══════════════ -->
+<div class="screen" id="screenSummary">
+  <div class="summary-hero">
+    <div class="summary-score-ring">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#1E2E42" stroke-width="10"/>
+        <circle id="scoreArc" cx="60" cy="60" r="52" fill="none" stroke="#00C9A7" stroke-width="10"
+          stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset 1s ease"/>
+      </svg>
+      <div>
+        <div class="score-number" id="summaryScore">0%</div>
+        <div class="score-pct" id="summaryFraction"></div>
+      </div>
+    </div>
+    <div class="summary-rating" id="summaryRating"></div>
+    <div class="summary-meta" id="summaryMeta"></div>
+  </div>
+
+  <div class="section-label">លទ្ធផលតាមដែន</div>
+  <div class="domain-summary-list" id="domainSummaryList"></div>
+
+  <div class="action-btns">
+    <button class="btn-secondary btn-sheets" onclick="openSheetsModal()">
+      📊 រក្សាទុក Google Sheets
+    </button>
+    <button class="btn-secondary btn-pdf" onclick="exportPDF()">
+      📄 ទាញយក PDF
+    </button>
+    <button class="btn-secondary" onclick="goHome()">
+      🏠 វាយតម្លៃផ្នែកថ្មី
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL (Google Sheets) ══════════════ -->
+<div class="modal-overlay" id="sheetsModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📊 Google Sheets</div>
+    <div class="modal-desc">
+      បញ្ចូល URL របស់ Google Apps Script Web App ដើម្បីរក្សាទុក ។ 
+      <br>ប្រើ script ភ្ជាប់ Google Sheet ។
+    </div>
+    <input class="modal-input" id="sheetsUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" />
+    <div class="modal-row">
+      <button class="btn-ghost" onclick="closeSheetsModal()">បោះបង់</button>
+      <button class="btn-primary" style="margin:0;flex:1" onclick="saveToSheets()">រក្សាទុក</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ DATA ══
+const DOMAINS = [
+  { id:'HH', name:'អនាម័យដៃ', icon:'🖐', color:'#1565C0', light:'#E3F2FD',
+    criteria:['មាន AHR dispenser នៅគ្រប់ចំណុចថែទាំ','មានទឹក និងសាប៊ូនៅ sink','មានក្រដាសសម្ងួតដៃ (single-use)','បុគ្គលិកអនុវត្ត 5 ពេល (WHO 5 Moments)','ក្រចកខ្លី ស្អាត; គ្មានក្រចកសិប្បនិម្មិត','គ្មានអលង្ការ ពេលថែទាំ (ចិញ្ចៀន, មាសដៃ, នាឡិកា)','មានការតាមដាន/កត់ត្រា HH compliance','បុគ្គលិកអាចបង្ហាញ 6 ជំហាន WHO ត្រឹមត្រូវ']},
+  { id:'PPE', name:'ឧបករណ៍ការពារខ្លួន', icon:'🥼', color:'#2E7D32', light:'#E8F5E9',
+    criteria:['មានស្រោមមេដៃ disposable គ្រប់ទំហំ','មានម៉ាស់វះកាត់ (surgical mask)','មានឧបករណ៍ការពារភ្នែក (goggles/face shield)','មានខ្នាប/apron ពេលប្រឈមការសាច','បុគ្គលិកជ្រើស PPE ត្រឹមត្រូវតាមប្រភេទ','បុគ្គលិកពាក់/ដោះ PPE ត្រឹមត្រូវ (donning/doffing)','PPE single-use ត្រូវបោះចោលភ្លាមក្រោយប្រើ']},
+  { id:'EQ', name:'ការ Reprocess ឧបករណ៍', icon:'🔧', color:'#6A1B9A', light:'#F3E5F5',
+    criteria:['ឧបករណ៍ចាត់ថ្នាក់ (critical/semi/non-critical)','ឧបករណ៍សំអាតដោយ detergent មុន HLD/Sterilize','ឧបករណ៍ប្រើហើយ ដឹកក្នុងធុងបិទបាំងរឹង','HLD/Sterilize ដោយ validated method (autoclave)','ប្រើ Chemical/Biological Indicator (CI/BI)','មានកំណត់ត្រាការ sterilize (log)','ឧបករណ៍ sterile ដាក់ស្តុកត្រឹមត្រូវ','ប្រើ FIFO (first in, first out)','Zone clean/dirty ត្រូវបានបំបែក']},
+  { id:'ENV', name:'ការសំអាតបរិស្ថាន', icon:'🧹', color:'#4E342E', light:'#EFEBE9',
+    criteria:['សំអាតបរិស្ថាន ≥1 ដងក្នុង1ថ្ងៃ','Disinfect ផ្ទៃ high-risk ដោយ Chlorine 0.05%','លំដាប់: corridor→ patient room→bathroom','ឧបករណ៍សំអាត clean/disinfect/dry ក្រោយប្រើ','គ្រែ/stretcher clean/disinfect ក្រោយ discharge','Spill ឈាម/body fluid ដោះស្រាយភ្លាមៗ','Cleaning staff ពាក់ PPE ត្រឹមត្រូវ','មានកំណត់ត្រា/schedule ការសំអាត','ពូក/ខ្នើយ មានខ្នងប្លាស្ទិក ស្ដើង']},
+  { id:'WM', name:'ការគ្រប់គ្រងសំណល់', icon:'🗑', color:'#37474F', light:'#ECEFF1',
+    criteria:['បំបែកសំណល់: ធុងបៃតង vs ធុងលឿង','ធុងមិនពេញហួស ¾','Infectious waste ក្នុង ថង់លឿង impermeable','ដាក់ medical waste ក្នុង locked storage','ផ្លូវវិទ្ឋ: incineration >800°C / encapsulation','Waste staff ពាក់ PPE ត្រឹមត្រូវ']},
+  { id:'SH', name:'Sharps Safety', icon:'💉', color:'#B71C1C', light:'#FFEBEE',
+    criteria:['Safety box ក្បែរ point of care','Safety box មិនពេញហួស ¾','មិន recap ម្ជុល (ឬ one-hand technique)','មិន បត់/ខ្ញែ/កាត់ ម្ជុល','"Hands-free technique" ពេលបញ្ជូន sharp','ប្រើ single-use syringe/needle','មាន PEP procedure សម្រាប់ needlestick']},
+  { id:'LN', name:'ការគ្រប់គ្រងក្រណាត់', icon:'🛏', color:'#0277BD', light:'#E1F5FE',
+    criteria:['ក្រណាត់ប្រើហើយ ដាក់ថង់ភ្លាម (point of gen.)','Infectious linen ក្នុង ថង់លឿង impermeable','ចាត់ចែងក្រណាត់ minimum agitation','Laundry staff ពាក់ PPE ត្រឹមត្រូវ','Clean linen ដាក់ ឆ្ងាយ ពី soiled linen']},
+  { id:'AP', name:'Additional Precautions', icon:'🚨', color:'#E65100', light:'#FFF3E0',
+    criteria:['ដាក់ Contact Precautions ป้าย','ដាក់ Droplet Precautions ป้าย','Airborne Precautions (N95) ប្រើ សម្រាប់ TB','Infectious patient: single room ឬ ≥1m','Dedicated equipment ឬ clean/disinfect','អ្នកទស្សន/គ្រួសារ ត្រូវបានបង្រៀន','Respiratory hygiene ផ្សព្វ (mask, AHR)']},
+  { id:'OS', name:'សុខភាពបុគ្គលិក', icon:'👷', color:'#BF360C', light:'#FBE9E7',
+    criteria:['Training IPC ក្នុង 12 ខែចុងក្រោយ','ចាក់វ៉ាក់សាំង (HBV, COVID, flu etc)','ដឹងពី PEP procedure','Staff ជំងឺ respiratory ឈប់ contact អ្នកជំងឺ','ពិនិត្យ​សុខភាព​ប្រចាំ​ឆ្នាំ']},
+  { id:'INF', name:'ហេដ្ឋារចនា / IPC Programme', icon:'🏗', color:'#1A237E', light:'#E8EAF6',
+    criteria:['Ventilation (windows openable) ក្នុង patient area','ចម្ងាយ ≥1m រវាងគ្រែ','ទឹកស្អាត 24h/day','មាន IPC focal person / link nurse','IPC policy/SOP ហើយ accessible','IPC audit records / feedback ជូនបុគ្គលិក','Bed occupancy ≤ official capacity']},
+];
+
+const DEPARTMENTS = [
+  {id:'OPD',name:'OPD / ពិគ្រោះជំងឺក្រៅ',icon:'🏥'},
+  {id:'Emergency',name:'Emergency / សង្គ្រោះបន្ទាន់',icon:'🚑'},
+  {id:'ICU',name:'ICU / ថែទាំកម្រិតធ្ងន់',icon:'💊'},
+  {id:'GenMed',name:'General Medicine / ជំងឺទូទៅ',icon:'🩺'},
+  {id:'Surgery_A',name:'Trauma-Surgery A / របួសសល្យ ក',icon:'🔬'},
+  {id:'Surgery_B',name:'Trauma-Surgery B / របួសសល្យ ខ',icon:'🔬'},
+  {id:'OR',name:'OR / សល្យាគារ',icon:'⚕️'},
+  {id:'Gynecology',name:'Gynecology / រោគស្ត្រី',icon:'👩‍⚕️'},
+  {id:'Maternity',name:'Maternity / សម្ភព',icon:'🤱'},
+  {id:'NICU',name:'NICU / ថែទាំទារក',icon:'👶'},
+  {id:'Dialysis',name:'Dialysis / លាងឈាម',icon:'🩸'},
+  {id:'Eye',name:'Eye Unit / ចក្ខុរោគ',icon:'👁'},
+  {id:'Pediatry',name:'Pediatry / ជំងឺកុមារ',icon:'🧒'},
+  {id:'MinorSurg',name:'Minor Surgery / វះកាត់តូច',icon:'🩹'},
+  {id:'Dental',name:'Dental / មាត់ធ្មេញ',icon:'🦷'},
+  {id:'NCD',name:'NCD / ជំងឺមិនឆ្លង',icon:'❤️'},
+  {id:'ENT',name:'ENT / ត្រចៀកច្រមុះ',icon:'👂'},
+  {id:'Lab',name:'Laboratory / ពិសោធន៍',icon:'🧪'},
+];
+
+// ══ STATE ══
+let selectedDept = null;
+let scores = {}; // {domainId_criIdx: 0|1|2|'NA'}
+let currentScreen = 'home';
+let savedSheetsUrl = localStorage.getItem('ipc_sheets_url') || '';
+
+// ══ INIT ══
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('assessDate').value = new Date().toISOString().split('T')[0];
+  renderDeptGrid();
+  if (savedSheetsUrl) document.getElementById('sheetsUrl').value = savedSheetsUrl;
+});
+
+function renderDeptGrid() {
+  const grid = document.getElementById('deptGrid');
+  grid.innerHTML = DEPARTMENTS.map(d => `
+    <div class="dept-card" id="dcard_${d.id}" onclick="selectDept('${d.id}')">
+      <div class="check">✓</div>
+      <div class="dept-icon">${d.icon}</div>
+      <div class="dept-name">${d.name}</div>
+    </div>
+  `).join('');
+}
+
+function selectDept(id) {
+  if (selectedDept) document.getElementById('dcard_'+selectedDept)?.classList.remove('selected');
+  selectedDept = id;
+  document.getElementById('dcard_'+id).classList.add('selected');
+  document.getElementById('btnStart').disabled = false;
+}
+
+// ══ NAVIGATION ══
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentScreen = id;
+  const isHome = id === 'screenHome';
+  document.getElementById('btnBack').style.display = isHome ? 'none' : 'block';
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  if (currentScreen === 'screenAssess') showScreen('screenHome');
+  else if (currentScreen === 'screenSummary') showScreen('screenAssess');
+  else showScreen('screenHome');
+}
+
+function goHome() {
+  scores = {};
+  selectedDept = null;
+  document.querySelectorAll('.dept-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('topTitle').textContent = 'ការវាយតម្លៃ IPC — KCPH';
+  document.getElementById('topSub').textContent = 'មន្ទីរពេទ្យខេត្តកំពង់ឆ្នាំង';
+  showScreen('screenHome');
+}
+
+// ══ START ASSESSMENT ══
+function startAssessment() {
+  if (!selectedDept) return;
+  scores = {};
+  const dept = DEPARTMENTS.find(d => d.id === selectedDept);
+  document.getElementById('assessDeptLabel').textContent = dept.icon + ' ' + dept.name;
+  document.getElementById('topTitle').textContent = dept.name.split('/')[1]?.trim() || dept.name;
+  document.getElementById('topSub').textContent = 'ការវាយតម្លៃ IPC';
+
+  buildAssessmentUI();
+  updateProgress();
+  showScreen('screenAssess');
+}
+
+function buildAssessmentUI() {
+  const container = document.getElementById('assessmentContent');
+  container.innerHTML = DOMAINS.map(domain => `
+    <div class="domain-block" id="db_${domain.id}">
+      <div class="domain-header" onclick="toggleDomain('${domain.id}')">
+        <div class="domain-icon" style="background:${domain.color}20;color:${domain.color}">${domain.icon}</div>
+        <div class="domain-info">
+          <div class="domain-name" style="color:${domain.color}">${domain.name}</div>
+          <div class="domain-score" id="dscore_${domain.id}">0 / ${domain.criteria.length}</div>
+        </div>
+        <div class="domain-chevron">▼</div>
+      </div>
+      <div class="domain-items" id="ditems_${domain.id}">
+        ${domain.criteria.map((c, i) => `
+          <div class="criterion-row">
+            <div class="criterion-text">${c}</div>
+            <div class="score-btns">
+              <button class="score-btn s2" onclick="setScore('${domain.id}',${i},2)" id="btn_${domain.id}_${i}_2" title="ត្រឹមត្រូវ">2</button>
+              <button class="score-btn s1" onclick="setScore('${domain.id}',${i},1)" id="btn_${domain.id}_${i}_1" title="មួយផ្នែក">1</button>
+              <button class="score-btn s0" onclick="setScore('${domain.id}',${i},0)" id="btn_${domain.id}_${i}_0" title="មិនត្រឹមត្រូវ">0</button>
+              <button class="score-btn sna" onclick="setScore('${domain.id}',${i},'NA')" id="btn_${domain.id}_${i}_NA" title="មិនពាក់ព័ន្ធ">N/A</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  // open first domain
+  toggleDomain(DOMAINS[0].id);
+}
+
+function toggleDomain(id) {
+  const block = document.getElementById('db_' + id);
+  block.classList.toggle('open');
+}
+
+function setScore(domainId, criIdx, val) {
+  const key = domainId + '_' + criIdx;
+  scores[key] = val;
+  
+  // Update button UI
+  ['2','1','0','NA'].forEach(v => {
+    const btn = document.getElementById(`btn_${domainId}_${criIdx}_${v}`);
+    if (btn) btn.classList.toggle('active', String(val) === String(v));
+  });
+
+  updateDomainScore(domainId);
+  updateProgress();
+}
+
+function updateDomainScore(domainId) {
+  const domain = DOMAINS.find(d => d.id === domainId);
+  let answered = 0;
+  domain.criteria.forEach((_, i) => {
+    if (scores[domainId + '_' + i] !== undefined) answered++;
+  });
+  document.getElementById('dscore_' + domainId).textContent = answered + ' / ' + domain.criteria.length;
+}
+
+function updateProgress() {
+  const total = DOMAINS.reduce((s, d) => s + d.criteria.length, 0);
+  const answered = Object.keys(scores).length;
+  const pct = Math.round(answered / total * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressAnswered').textContent = answered + ' ចម្លើយ';
+  document.getElementById('progressTotal').textContent = total + ' សំណួរ';
+}
+
+// ══ FINISH ══
+function finishAssessment() {
+  const total = DOMAINS.reduce((s, d) => s + d.criteria.length, 0);
+  const answered = Object.keys(scores).length;
+  if (answered < total * 0.5) {
+    showToast('⚠️ បំពេញយ៉ាងហោចណាស់ 50% !' , 'error');
+    return;
+  }
+  buildSummary();
+  showScreen('screenSummary');
+}
+
+function buildSummary() {
+  let totalScore = 0, totalMax = 0;
+
+  const domainResults = DOMAINS.map(d => {
+    let score = 0, max = 0;
+    d.criteria.forEach((_, i) => {
+      const v = scores[d.id + '_' + i];
+      if (v !== undefined && v !== 'NA') { max += 2; score += Number(v); }
+    });
+    return { ...d, score, max, pct: max > 0 ? score/max : 0 };
+  });
+
+  domainResults.forEach(r => { totalScore += r.score; totalMax += r.max; });
+  const overallPct = totalMax > 0 ? totalScore / totalMax : 0;
+  const overallPctRound = Math.round(overallPct * 100);
+
+  // Animate ring
+  const circumference = 326.7;
+  const offset = circumference - (overallPct * circumference);
+  setTimeout(() => {
+    document.getElementById('scoreArc').style.strokeDashoffset = offset;
+    const color = overallPct >= 0.8 ? '#2ED573' : overallPct >= 0.6 ? '#FFA502' : '#FF4757';
+    document.getElementById('scoreArc').style.stroke = color;
+  }, 200);
+
+  document.getElementById('summaryScore').textContent = overallPctRound + '%';
+  document.getElementById('summaryFraction').textContent = totalScore + ' / ' + totalMax;
+
+  const rating = document.getElementById('summaryRating');
+  if (overallPct >= 0.8) { rating.textContent = '✅ Good Performance'; rating.className = 'summary-rating rating-good'; }
+  else if (overallPct >= 0.6) { rating.textContent = '⚠️ Needs Improvement'; rating.className = 'summary-rating rating-warn'; }
+  else { rating.textContent = '🔴 Critical — Action Required'; rating.className = 'summary-rating rating-crit'; }
+
+  const dept = DEPARTMENTS.find(d => d.id === selectedDept);
+  const assessor = document.getElementById('assessorName').value || 'N/A';
+  const date = document.getElementById('assessDate').value;
+  document.getElementById('summaryMeta').textContent = dept.name + ' | ' + assessor + ' | ' + date;
+
+  // Domain breakdown
+  const list = document.getElementById('domainSummaryList');
+  list.innerHTML = domainResults.map(r => {
+    const pctDisp = r.max > 0 ? Math.round(r.pct * 100) : 0;
+    const barColor = r.pct >= 0.8 ? '#2ED573' : r.pct >= 0.6 ? '#FFA502' : '#FF4757';
+    return `
+      <div class="domain-summary-item">
+        <div class="domain-summary-row">
+          <div class="domain-summary-icon">${r.icon}</div>
+          <div class="domain-summary-name" style="color:${r.color}">${r.name}</div>
+          <div class="domain-summary-pct" style="color:${barColor}">${pctDisp}%</div>
+        </div>
+        <div class="mini-bar">
+          <div class="mini-bar-fill" style="width:${pctDisp}%;background:${barColor}"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══ GOOGLE SHEETS ══
+function openSheetsModal() {
+  if (savedSheetsUrl) document.getElementById('sheetsUrl').value = savedSheetsUrl;
+  document.getElementById('sheetsModal').classList.add('open');
+}
+function closeSheetsModal() {
+  document.getElementById('sheetsModal').classList.remove('open');
+}
+
+async function saveToSheets() {
+  const url = document.getElementById('sheetsUrl').value.trim();
+  if (!url || !url.startsWith('http')) { showToast('⚠️ URL មិនត្រឹមត្រូវ', 'error'); return; }
+  
+  localStorage.setItem('ipc_sheets_url', url);
+  savedSheetsUrl = url;
+
+  const dept = DEPARTMENTS.find(d => d.id === selectedDept);
+  const assessor = document.getElementById('assessorName').value || '';
+  const date = document.getElementById('assessDate').value;
+  const type = document.getElementById('assessType').value;
+
+  const domainResults = DOMAINS.map(d => {
+    let score = 0, max = 0;
+    d.criteria.forEach((_, i) => {
+      const v = scores[d.id + '_' + i];
+      if (v !== undefined && v !== 'NA') { max += 2; score += Number(v); }
+    });
+    return { domain: d.name, score, max, pct: max > 0 ? Math.round(score/max*100) : 0 };
+  });
+
+  let totalScore = domainResults.reduce((s,r)=>s+r.score,0);
+  let totalMax = domainResults.reduce((s,r)=>s+r.max,0);
+  const overallPct = totalMax > 0 ? Math.round(totalScore/totalMax*100) : 0;
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    assessor, date, type,
+    department: dept.name,
+    totalScore, totalMax, overallPct,
+    domainScores: domainResults,
+    rawScores: scores
+  };
+
+  try {
+    showToast('⏳ កំពុងរក្សាទុក...', '');
+    const res = await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    closeSheetsModal();
+    showToast('✅ រក្សាទុក Google Sheets ដោយជោគជ័យ!', 'success');
+  } catch (e) {
+    closeSheetsModal();
+    showToast('❌ Error: ' + e.message, 'error');
+  }
+}
+
+// ══ PDF EXPORT ══
+function exportPDF() {
+  const dept = DEPARTMENTS.find(d => d.id === selectedDept);
+  const assessor = document.getElementById('assessorName').value || 'N/A';
+  const date = document.getElementById('assessDate').value;
+  const type = document.getElementById('assessType').value;
+
+  const domainResults = DOMAINS.map(d => {
+    let score = 0, max = 0;
+    d.criteria.forEach((_, i) => {
+      const v = scores[d.id + '_' + i];
+      if (v !== undefined && v !== 'NA') { max += 2; score += Number(v); }
+    });
+    return { ...d, score, max, pct: max > 0 ? Math.round(score/max*100) : 0 };
+  });
+
+  let totalScore = domainResults.reduce((s,r)=>s+r.score,0);
+  let totalMax = domainResults.reduce((s,r)=>s+r.max,0);
+  const overallPct = totalMax > 0 ? Math.round(totalScore/totalMax*100) : 0;
+  const rating = overallPct >= 80 ? 'Good Performance' : overallPct >= 60 ? 'Needs Improvement' : 'Critical';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  
+  const W = 210, margin = 14;
+  let y = 20;
+
+  // Header
+  doc.setFillColor(13,27,42);
+  doc.rect(0, 0, W, 40, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('KAMPONG CHHNANG PROVINCIAL HOSPITAL', W/2, 14, {align:'center'});
+  doc.setFontSize(11);
+  doc.text('IPC Assessment Report', W/2, 22, {align:'center'});
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text('National IPC Guidelines 2024 | Ministry of Health, Cambodia', W/2, 30, {align:'center'});
+  y = 50;
+
+  // Info box
+  doc.setFillColor(30, 46, 66);
+  doc.rect(margin, y-5, W-margin*2, 30, 'F');
+  doc.setTextColor(140,168,200);
+  doc.setFontSize(8);
+  doc.text('DEPARTMENT', margin+4, y);
+  doc.text('ASSESSOR', 80, y);
+  doc.text('DATE', 130, y);
+  doc.text('TYPE', 170, y);
+  doc.setTextColor(232,240,254);
+  doc.setFontSize(10); doc.setFont('helvetica','bold');
+  const deptShort = dept.name.replace(/[^\x00-\x7F]/g, '?').substring(0,20);
+  doc.text(dept.id, margin+4, y+8);
+  doc.text(assessor || 'N/A', 80, y+8);
+  doc.text(date, 130, y+8);
+  doc.text(type, 170, y+8);
+  doc.setFont('helvetica','normal');
+
+  // Score circle area
+  y += 40;
+  const scoreColor = overallPct >= 80 ? [46,213,115] : overallPct >= 60 ? [255,165,2] : [255,71,87];
+  doc.setDrawColor(...scoreColor); doc.setLineWidth(3);
+  doc.circle(W/2, y+15, 18);
+  doc.setFillColor(...scoreColor);
+  doc.setTextColor(...scoreColor);
+  doc.setFontSize(20); doc.setFont('helvetica','bold');
+  doc.text(overallPct+'%', W/2, y+13, {align:'center'});
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(totalScore+'/'+totalMax, W/2, y+21, {align:'center'});
+  doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text(rating, W/2, y+36, {align:'center'});
+  y += 50;
+
+  // Domain table
+  doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.setFillColor(30,70,120); doc.setTextColor(255,255,255);
+  doc.rect(margin, y, W-margin*2, 7, 'F');
+  doc.text('Domain', margin+3, y+5);
+  doc.text('Score', 130, y+5);
+  doc.text('Max', 150, y+5);
+  doc.text('%', 170, y+5);
+  doc.text('Rating', 180, y+5);
+  y += 9;
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  domainResults.forEach((r, i) => {
+    const ratingStr = r.pct >= 80 ? 'Good' : r.pct >= 60 ? 'Fair' : 'Poor';
+    const rowColor = i%2===0 ? [240,245,255] : [255,255,255];
+    doc.setFillColor(...rowColor); doc.rect(margin, y, W-margin*2, 7, 'F');
+    doc.setTextColor(30,50,80);
+    // Remove non-ASCII from domain name
+    const dname = r.name.replace(/[^\x00-\x7F]/g, '?');
+    doc.text(dname.substring(0,30), margin+3, y+5);
+    doc.text(String(r.score), 130, y+5);
+    doc.text(String(r.max), 150, y+5);
+    doc.text(r.pct+'%', 170, y+5);
+    const rc = r.pct>=80?[46,120,70]:r.pct>=60?[180,110,0]:[180,40,40];
+    doc.setTextColor(...rc); doc.setFont('helvetica','bold');
+    doc.text(ratingStr, 180, y+5);
+    doc.setFont('helvetica','normal'); doc.setTextColor(30,50,80);
+    y += 8;
+    if (y > 250) { doc.addPage(); y = 20; }
+  });
+
+  // Detailed scores
+  y += 8;
+  if (y > 240) { doc.addPage(); y = 20; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(10);
+  doc.setTextColor(13,27,42);
+  doc.text('Detailed Assessment', margin, y); y += 8;
+
+  DOMAINS.forEach(d => {
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFillColor(30, 50, 100);
+    doc.rect(margin, y, W-margin*2, 7, 'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.text(d.name.replace(/[^\x00-\x7F]/g,'?'), margin+3, y+5);
+    y += 9;
+
+    d.criteria.forEach((crit, i) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      const val = scores[d.id+'_'+i];
+      const valStr = val === undefined ? '-' : String(val);
+      const bgRow = i%2===0 ? [248,250,255] : [255,255,255];
+      doc.setFillColor(...bgRow);
+      const lines = doc.splitTextToSize(crit.replace(/[^\x00-\x7F]/g,'?'), 140);
+      const rowH = Math.max(7, lines.length * 4.5);
+      doc.rect(margin, y, W-margin*2, rowH, 'F');
+      doc.setTextColor(50,60,80); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+      doc.text(lines, margin+3, y+4.5);
+      const scoreColor2 = val===2?[46,120,70]:val===1?[180,110,0]:val===0?[180,40,40]:[100,100,100];
+      doc.setTextColor(...scoreColor2); doc.setFont('helvetica','bold');
+      doc.text(valStr, W-margin-8, y+rowH/2+1.5, {align:'right'});
+      y += rowH + 1;
+    });
+    y += 4;
+  });
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setFillColor(13,27,42); doc.rect(0, 287, 210, 10, 'F');
+    doc.setTextColor(100,130,160); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('KCPH IPC Assessment | ' + date + ' | Page ' + p + '/' + pageCount, W/2, 293, {align:'center'});
+  }
+
+  doc.save('IPC_Assessment_' + dept.id + '_' + date + '.pdf');
+  showToast('✅ PDF បានទាញយក!', 'success');
+}
+
+// ══ TOAST ══
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Close modal on overlay click
+document.getElementById('sheetsModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSheetsModal();
+});
+</script>
+</body>
+</html>
